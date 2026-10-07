@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rang - colour together</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--plum:#3b1030;--plum2:#55204a;--paper:#fffaf0;--gold:#f2a900;--pink:#e0457b;--ink:#2a0c24}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--plum);color:var(--paper);font:500 16px/1.4 "Baloo 2",system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;padding:16px}
+h1{margin:4px 0 2px;font-size:2.4rem;font-weight:700;color:var(--gold);letter-spacing:.02em}
+.sub{margin:0 0 16px;opacity:.8;text-align:center}
+.card{background:var(--plum2);border-radius:18px;padding:18px;width:100%;max-width:440px}
+button,input{font:inherit;border-radius:12px;border:2px solid transparent}
+button{background:var(--gold);color:var(--ink);padding:9px 16px;cursor:pointer;font-weight:700}
+button.alt{background:transparent;color:var(--paper);border-color:var(--paper)}
+button:focus-visible,input:focus-visible,.sw:focus-visible{outline:3px solid #fff;outline-offset:2px}
+input{background:var(--paper);color:var(--ink);padding:9px 12px;width:100%;text-transform:uppercase;letter-spacing:.2em;text-align:center}
+.row{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.or{text-align:center;margin:14px 0 2px;opacity:.7}
+#game{display:none;width:100%;max-width:560px;flex-direction:column;align-items:center}
+.bar{display:flex;gap:10px;align-items:center;justify-content:space-between;width:100%;flex-wrap:wrap}
+.code{font-size:1.6rem;font-weight:700;letter-spacing:.2em;color:var(--gold)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#777;margin-right:6px}
+.dot.on{background:#3ddc84}
+.tabs{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;justify-content:center}
+.tabs button.on{background:var(--pink);color:#fff}
+.canvas{background:var(--paper);border-radius:18px;padding:8px;width:100%;max-width:520px;touch-action:manipulation}
+svg{display:block;width:100%;height:auto}
+.r{stroke:var(--plum);stroke-width:2;cursor:pointer;transition:fill .15s}
+.r:hover{opacity:.85}
+.pal{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:14px 0}
+.sw{width:38px;height:38px;border-radius:50%;border:3px solid var(--paper);cursor:pointer;padding:0}
+.sw.on{outline:4px solid var(--gold);outline-offset:2px}
+.msg{background:#7a1f3d;border-radius:12px;padding:10px 14px;margin-top:12px;display:none}
+.lbl{margin:8px 0 0;font-weight:700;opacity:.85;text-align:center}
+.tool.on{background:var(--pink);color:#fff;border-color:var(--pink)}
+.pal label{display:flex;align-items:center;gap:8px}
+#custom{width:46px;height:38px;padding:0;letter-spacing:0;border-radius:10px;cursor:pointer}
+.sw.shine{background-size:200% 100%!important;animation:sh 3s linear infinite}
+@keyframes sh{from{background-position:0 0}to{background-position:200% 0}}
+@media (prefers-reduced-motion:reduce){.sw.shine{animation:none}}
+.note{font-size:.9rem;opacity:.75;text-align:center;margin-top:8px}
+</style>
+</head>
+<body>
+<h1>Rang</h1>
+<p class="sub">Colour one picture together, live.</p>
+
+<div class="card" id="lobby">
+  <button id="create" style="width:100%">Create room</button>
+  <p class="or">or join a friend's room</p>
+  <input id="codeIn" maxlength="5" placeholder="CODE" aria-label="Room code">
+  <div class="row"><button id="join" class="alt">Join room</button></div>
+  <div class="msg" id="msg"></div>
+</div>
+
+<div id="game">
+  <div class="bar">
+    <div><span class="code" id="code"></span></div>
+    <div><span class="dot" id="dot"></span><span id="st">Connecting</span></div>
+    <button class="alt" id="copy">Copy invite link</button>
+  </div>
+  <div class="tabs" id="tabs"></div>
+  <div class="canvas"><svg id="svg" viewBox="-150 -150 300 300" aria-label="Colouring picture"></svg></div>
+  <div class="pal"><button class="tool alt" id="erase">Eraser</button><label>Your own colour <input type="color" id="custom" value="#e0457b"></label></div>
+  <p class="lbl">Single colours</p><div class="pal" id="solid"></div>
+  <p class="lbl">Two colours</p><div class="pal" id="duo"></div>
+  <p class="lbl">Shining</p><div class="pal" id="shine"></div>
+  <div class="row" style="margin-top:0"><button class="alt" id="clear">Clear colours</button><button class="alt" id="leave">Leave room</button></div>
+  <p class="note">Pick a colour or the eraser, then tap a part of the picture. Your friend sees it instantly.</p>
+</div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getFirestore,doc,setDoc,getDoc,updateDoc,onSnapshot,deleteField} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ===== PASTE YOUR FIREBASE CONFIG HERE (replace the whole block) ===== */
+const firebaseConfig = {
+  apiKey: "AIzaSyCPPEev6QYzRCPOf5kKhD_u44v2ud9FdEA",
+  authDomain: "colour-palette-29625.firebaseapp.com",
+  projectId: "colour-palette-29625",
+  storageBucket: "colour-palette-29625.firebasestorage.app",
+  messagingSenderId: "897020325673",
+  appId: "1:897020325673:web:f53b513fe0534a607d5138"
+};
+/* ===================================================================== */
+
+const $=id=>document.getElementById(id);
+const msg=t=>{const m=$("msg");m.textContent=t;m.style.display=t?"block":"none"};
+const configured=!firebaseConfig.apiKey.startsWith("PASTE");
+let db;
+if(configured){db=getFirestore(initializeApp(firebaseConfig))}
+else msg("Setup needed: open index.html in a text editor and paste your Firebase config where it says PASTE YOUR FIREBASE CONFIG HERE.");
+
+/* ---- pictures ---- */
+let n;
+const R=(t,a)=>`<${t} class="r" data-i="${n++}" ${a}/>`;
+const rot=(i,s,o=0)=>`transform="rotate(${i*s+o})"`;
+const F={
+  Mandala(){n=0;let s=R("circle",'r="145"');
+    for(let i=0;i<12;i++)s+=R("ellipse",`cy="-100" rx="17" ry="27" ${rot(i,30,15)}`);
+    for(let i=0;i<12;i++)s+=R("ellipse",`cy="-58" rx="15" ry="28" ${rot(i,30)}`);
+    for(let i=0;i<12;i++)s+=R("circle",`cy="-136" r="6" ${rot(i,30)}`);
+    return s+R("circle",'r="32"')+R("circle",'r="16"')},
+  Lotus(){n=0;let s=R("rect",'x="-150" y="-150" width="300" height="200"')+R("rect",'x="-150" y="40" width="300" height="110"')+R("circle",'cx="95" cy="-95" r="28"');
+    s+=R("ellipse",'cx="-92" cy="70" rx="46" ry="12"')+R("ellipse",'cx="96" cy="95" rx="40" ry="10"');
+    for(const a of[-70,70,-40,40,-15,15,0])s+=R("ellipse",`cy="-58" rx="22" ry="60" transform="translate(0,40) rotate(${a})"`);
+    return s},
+  House(){n=0;return R("rect",'x="-150" y="-150" width="300" height="300"')+R("circle",'cx="-95" cy="-95" r="26"')
+    +R("circle",'cx="60" cy="-95" r="18"')+R("circle",'cx="82" cy="-100" r="22"')+R("circle",'cx="104" cy="-95" r="16"')
+    +R("ellipse",'cx="0" cy="130" rx="190" ry="90"')+R("rect",'x="95" y="20" width="12" height="55"')+R("circle",'cx="101" cy="5" r="32"')
+    +R("rect",'x="-50" y="-10" width="100" height="80"')+R("polygon",'points="-62,-10 0,-65 62,-10"')
+    +R("rect",'x="-12" y="30" width="24" height="40"')+R("rect",'x="-40" y="5" width="22" height="20"')+R("rect",'x="18" y="5" width="22" height="20"')}
+};
+const SOLID=["#e0457b","#f2a900","#ff7a1a","#7bc043","#00897b","#1e88e5","#5e35b1","#8d4a2b","#ffd9a0","#f48fb1","#222222","#ffffff",
+"#d62828","#ffb703","#fb8500","#a7c957","#2a9d8f","#48cae4","#9d4edd","#c08552","#fcd5ce","#ffafcc","#8d99ae","#e9ecef"];
+const DUO=[["Sunset","#ff7a1a","#e0457b"],["Ocean","#1e88e5","#00c9a7"],["Berry","#e0457b","#5e35b1"],["Forest","#a7c957","#00897b"],["Flame","#ffd000","#d62828"],["Candy","#f48fb1","#a0e7ff"],["Dusk","#5e35b1","#ff7a1a"],["Mint","#a8e6cf","#fff3b0"]];
+const SHINE=[["Gold","#f2a900","#a86b00"],["Silver","#c9ced6","#6b7280"],["Rose gold","#f4a6a0","#b76e79"],["Copper","#e07a3f","#8a3b12"],["Emerald","#2ecc71","#0b6b3a"],["Sapphire","#4f8cff","#1b3a8a"],["Ruby","#ff4d6d","#8a1030"],["Amethyst","#b57cff","#4b2a8a"]];
+const DEFS="<defs>"+DUO.map((d,i)=>`<linearGradient id="d${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${d[1]}"/><stop offset="1" stop-color="${d[2]}"/></linearGradient>`).join("")
++SHINE.map((d,i)=>`<linearGradient id="s${i}" x1="-1" y1="0" x2="0" y2="0.4" spreadMethod="reflect"><stop offset="0" stop-color="${d[2]}"/><stop offset=".3" stop-color="${d[1]}"/><stop offset=".5" stop-color="#fff"/><stop offset=".7" stop-color="${d[1]}"/><stop offset="1" stop-color="${d[2]}"/><animate attributeName="x1" values="-1;1;-1" dur="4s" repeatCount="indefinite"/><animate attributeName="x2" values="0;2;0" dur="4s" repeatCount="indefinite"/></linearGradient>`).join("")+"</defs>";
+const paint=v=>!v?"#fff":v[0]=="#"?v:`url(#${v})`;
+
+/* ---- state ---- */
+let room=null,ref=null,unsub=null,fig="Mandala",fills={},cur="#e0457b",shownFig=null;
+const svg=$("svg");
+
+function pick(v,b){cur=v;document.querySelectorAll(".sw,.tool,#custom").forEach(x=>x.classList.remove("on"));b.classList.add("on")}
+function sw(val,bg,label,cls){const b=document.createElement("button");b.className="sw "+(cls||"");b.style.background=bg;b.title=label;b.setAttribute("aria-label",label);b.onclick=()=>pick(val,b);return b}
+SOLID.forEach((c,i)=>{const b=sw(c,c,"Colour "+(i+1));if(!i)b.classList.add("on");$("solid").append(b)});
+DUO.forEach((d,i)=>$("duo").append(sw("d"+i,`linear-gradient(135deg,${d[1]},${d[2]})`,d[0]+", two colours")));
+SHINE.forEach((d,i)=>$("shine").append(sw("s"+i,`linear-gradient(110deg,${d[2]},${d[1]} 35%,#fff 50%,${d[1]} 65%,${d[2]})`,d[0]+", shining","shine")));
+$("erase").onclick=function(){pick("",this)};
+$("custom").oninput=e=>pick(e.target.value,e.target);
+Object.keys(F).forEach(k=>{const b=document.createElement("button");b.className="alt";b.textContent=k;b.dataset.k=k;
+  b.onclick=()=>room&&updateDoc(ref,{fig:k,fills:{}});$("tabs").append(b)});
+
+function render(){
+  if(shownFig!==fig){svg.innerHTML=DEFS+F[fig]();shownFig=fig;
+    document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.k===fig))}
+  svg.querySelectorAll(".r").forEach(e=>e.style.fill=paint(fills[e.dataset.i]));
+}
+svg.addEventListener("click",e=>{
+  const t=e.target.closest(".r");if(!t||!room)return;
+  const i=t.dataset.i,off=()=>setStatus(false,"Offline");
+  if(cur===""){delete fills[i];t.style.fill="#fff";updateDoc(ref,{["fills."+i]:deleteField()}).catch(off)}
+  else{fills[i]=cur;t.style.fill=paint(cur);updateDoc(ref,{["fills."+i]:cur}).catch(off)}
+});
+
+function setStatus(on,t){$("dot").classList.toggle("on",on);$("st").textContent=t}
+const codeGen=()=>Array.from({length:5},()=>"ABCDEFGHJKMNPQRSTUVWXYZ23456789"[Math.random()*31|0]).join("");
+
+function enter(code){
+  room=code;ref=doc(db,"rooms",code);
+  $("lobby").style.display="none";$("game").style.display="flex";$("code").textContent=code;
+  history.replaceState(null,"","?room="+code);shownFig=null;
+  unsub=onSnapshot(ref,s=>{
+    if(!s.exists()){return}
+    const d=s.data();fig=F[d.fig]?d.fig:"Mandala";fills=d.fills||{};render();setStatus(true,"Live");
+  },()=>setStatus(false,"Offline"));
+}
+async function create(){
+  if(!configured)return msg("Add your Firebase config first.");
+  try{const code=codeGen();await setDoc(doc(db,"rooms",code),{fig:"Mandala",fills:{},made:Date.now()});enter(code)}
+  catch(e){msg("Could not create the room. Check that Firestore is enabled and in test mode.")}
+}
+async function join(){
+  if(!configured)return msg("Add your Firebase config first.");
+  const code=$("codeIn").value.trim().toUpperCase();if(code.length<5)return msg("Enter the 5-letter room code.");
+  try{const s=await getDoc(doc(db,"rooms",code));s.exists()?enter(code):msg("No room with that code. Check it and try again.")}
+  catch(e){msg("Could not join. Check your internet connection.")}
+}
+$("create").onclick=create;$("join").onclick=join;
+$("codeIn").addEventListener("keydown",e=>e.key==="Enter"&&join());
+$("clear").onclick=()=>room&&updateDoc(ref,{fills:{}});
+$("leave").onclick=()=>{unsub&&unsub();room=null;history.replaceState(null,"",location.pathname);$("game").style.display="none";$("lobby").style.display="block";setStatus(false,"Connecting")};
+$("copy").onclick=async()=>{const u=location.origin+location.pathname+"?room="+room;
+  try{await navigator.clipboard.writeText(u);$("copy").textContent="Link copied"}catch{prompt("Copy this link:",u)}
+  setTimeout(()=>$("copy").textContent="Copy invite link",1800)};
+
+const q=new URLSearchParams(location.search).get("room");
+if(q){$("codeIn").value=q.toUpperCase();if(configured)join()}
+</script>
+</body>
+</html>
