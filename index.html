@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Colour Palette</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--plum:#3b1030;--plum2:#55204a;--paper:#fffaf0;--gold:#f2a900;--pink:#e0457b;--ink:#2a0c24}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--paper);font:500 16px/1.4 "Baloo 2",system-ui,sans-serif;display:flex;flex-direction:column;align-items:center;padding:14px 14px 30px;
+background:radial-gradient(circle at 16% 20%,rgba(224,69,123,.25),transparent 38%),radial-gradient(circle at 84% 16%,rgba(242,169,0,.2),transparent 36%),linear-gradient(160deg,#2a0f2e,#4a1a3d 60%,#6b2440) fixed}
+body.g{padding:6px 6px 20px}
+body.g .brand,body.g .sub{display:none}
+.brand{display:flex;align-items:center;gap:10px;margin:4px 0 0}
+h1{margin:0;font-size:2.2rem;font-weight:700;color:var(--gold);letter-spacing:.02em}
+.sub{margin:0 0 14px;opacity:.8;text-align:center}
+.card{background:var(--plum2);border-radius:18px;padding:18px;width:100%;max-width:440px}
+button,input{font:inherit;border-radius:12px;border:2px solid transparent}
+button{background:var(--gold);color:var(--ink);padding:8px 14px;cursor:pointer;font-weight:700}
+button.alt{background:transparent;color:var(--paper);border-color:var(--paper)}
+button:focus-visible,input:focus-visible,.sw:focus-visible{outline:3px solid #fff;outline-offset:2px}
+input{background:var(--paper);color:var(--ink);padding:9px 12px;width:100%;text-transform:uppercase;letter-spacing:.2em;text-align:center}
+.row{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.or{text-align:center;margin:14px 0 2px;opacity:.7}
+.msg{background:#7a1f3d;border-radius:12px;padding:10px 14px;margin-top:12px;display:none}
+#game{display:none;width:100%;flex-direction:column;align-items:center}
+.bar{display:flex;gap:10px;align-items:center;justify-content:space-between;width:100%;flex-wrap:wrap;margin-bottom:6px;min-height:40px}
+.code{font-size:1.3rem;font-weight:700;letter-spacing:.2em;color:var(--gold)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#777;margin-right:6px}
+.dot.on{background:#3ddc84}
+.bar button{padding:4px 12px}
+.layout{display:grid;grid-template-columns:68px minmax(0,1fr) 220px;gap:10px;width:100%;align-items:start;position:relative}
+.rail{display:flex;flex-direction:column;gap:6px;position:sticky;top:6px}
+.rail button{padding:6px 2px;font-size:.68rem;line-height:1.1;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:12px}
+.rail .ic{font-size:1.4rem;line-height:1}
+.rail .on{background:var(--pink);color:#fff;border-color:var(--pink)}
+.rail .cur{border-color:var(--gold)}
+.fly{display:none;position:absolute;left:76px;top:0;z-index:5;width:min(360px,calc(100vw - 100px));max-height:calc(100vh - 60px);overflow:auto;background:var(--plum2);border:2px solid var(--gold);border-radius:16px;padding:10px;box-shadow:0 12px 34px rgba(0,0,0,.55)}
+.fly.open{display:block}
+.fly h3{margin:6px 2px;font-size:.95rem;color:var(--gold)}
+.fly h3:first-child{margin-top:0}
+.vars{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.vars button{background:var(--paper);color:var(--ink);padding:4px;border-radius:12px;font-size:.72rem;line-height:1.1}
+.vars button.on{outline:3px solid var(--gold)}
+.vars small{display:block;opacity:.6;font-weight:500}
+.th{display:block;width:100%;height:auto;pointer-events:none}
+.th .r{stroke-width:3}
+main{display:flex;flex-direction:column;align-items:center;min-width:0}
+.canvas{background:var(--paper);border-radius:16px;padding:6px;width:min(100%,calc(100vh - 56px));touch-action:manipulation}
+#svg{display:block;width:100%;height:auto}
+.r{fill:#fff;stroke:var(--plum);stroke-width:2;stroke-linejoin:round;cursor:pointer;transition:fill .15s}
+#svg .r:hover{opacity:.85}
+.panel{position:sticky;top:6px;max-height:calc(100vh - 12px);overflow:auto}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.tool.on{background:var(--pink);color:#fff;border-color:var(--pink)}
+.tools label{display:flex;align-items:center;gap:8px}
+.pal{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+.lbl{margin:10px 0 0;font-weight:700;opacity:.85}
+.sw{width:30px;height:30px;border-radius:50%;border:3px solid var(--paper);cursor:pointer;padding:0}
+.sw.on{outline:3px solid var(--gold);outline-offset:2px}
+.sw.shine{background-size:200% 100%!important;animation:sh 3s linear infinite}
+@keyframes sh{from{background-position:0 0}to{background-position:200% 0}}
+@media (prefers-reduced-motion:reduce){.sw.shine{animation:none}}
+#custom{width:44px;height:34px;padding:0;letter-spacing:0;border-radius:10px;cursor:pointer}
+.note{font-size:.85rem;opacity:.7;margin-top:10px}
+.ver{margin-top:18px;font-size:10px;opacity:.45;text-align:center}
+@media (max-width:900px){
+ .layout{grid-template-columns:1fr}
+ .rail{flex-direction:row;overflow-x:auto;position:static}
+ .rail button{min-width:64px}
+ .fly{position:fixed;left:8px;right:8px;top:96px;width:auto;max-height:68vh}
+ .canvas{width:100%}
+ .panel{position:static;max-height:none}
+ .sw{width:34px;height:34px}
+}
+</style>
+</head>
+<body>
+<div class="brand">
+  <svg width="38" height="26" viewBox="0 0 38 26" aria-hidden="true"><circle cx="13" cy="13" r="10" fill="none" stroke="#e0457b" stroke-width="3"/><circle cx="25" cy="13" r="10" fill="none" stroke="#f2a900" stroke-width="3"/></svg>
+  <h1>Colour Palette</h1>
+</div>
+<p class="sub">One picture, two sets of hands.</p>
+
+<div class="card" id="lobby">
+  <button id="create" style="width:100%">Create room</button>
+  <p class="or">or join a room</p>
+  <input id="codeIn" type="password" maxlength="7" placeholder="PASSWORD" aria-label="Room password" autocomplete="off">
+  <div class="row"><button id="join" class="alt">Join room</button></div>
+  <div class="msg" id="msg"></div>
+</div>
+
+<div id="game">
+  <div class="bar">
+    <div class="code" id="code"></div>
+    <div><span class="dot" id="dot"></span><span id="st">Connecting</span></div>
+    <div class="row" style="margin:0">
+      <button class="alt" id="copy">Copy invite link</button>
+      <button class="alt" id="leave">Leave</button>
+    </div>
+  </div>
+  <div class="layout">
+    <nav class="rail" id="rail" aria-label="Picture categories"></nav>
+    <div class="fly" id="fly"></div>
+    <main><div class="canvas"><svg id="svg" viewBox="-150 -150 300 300" aria-label="Colouring picture"></svg></div></main>
+    <section class="panel">
+      <div class="tools">
+        <button class="tool alt" id="erase">&#129533; Eraser</button>
+        <label>Own colour <input type="color" id="custom" value="#e0457b"></label>
+        <button class="alt" id="clear">Clear picture</button>
+      </div>
+      <p class="lbl">Single colours</p><div class="pal" id="solid"></div>
+      <p class="lbl">Two colours</p><div class="pal" id="duo"></div>
+      <p class="lbl">Shining</p><div class="pal" id="shine"></div>
+      <p class="note">Tap a category on the left to choose a picture. Pick a colour or the eraser, then tap the picture.</p>
+    </section>
+  </div>
+</div>
+<div class="ver" id="ver"></div>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getFirestore,doc,setDoc,getDoc,updateDoc,onSnapshot,deleteField} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const VERSION="v1.3";
+const firebaseConfig = {
+  apiKey: "AIzaSyCPPEev6QYzRCPOf5kKhD_u44v2ud9FdEA",
+  authDomain: "colour-palette-29625.firebaseapp.com",
+  projectId: "colour-palette-29625",
+  storageBucket: "colour-palette-29625.firebasestorage.app",
+  messagingSenderId: "897020325673",
+  appId: "1:897020325673:web:f53b513fe0534a607d5138"
+};
+
+const ROOM="RangRez";
+const $=id=>document.getElementById(id);
+$("ver").textContent="Colour Palette "+VERSION;
+const msg=t=>{const m=$("msg");m.textContent=t;m.style.display=t?"block":"none"};
+const configured=!firebaseConfig.apiKey.startsWith("PASTE");
+let db;
+if(configured){db=getFirestore(initializeApp(firebaseConfig))}
+else msg("Setup needed: paste your Firebase config into index.html.");
+
+/* ---- picture building blocks ---- */
+let n;
+const R=(t,a)=>`<${t} class="r" data-i="${n++}" ${a}/>`;
+const ring=(t,c,a,o=0,tr="")=>{let s="";for(let i=0;i<c;i++)s+=R(t,`${a} transform="${tr} rotate(${i*360/c+o})"`);return s};
+const E=(cx,cy,rx,ry,x="")=>R("ellipse",`cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" ${x}`);
+const C=(cx,cy,r)=>R("circle",`cx="${cx}" cy="${cy}" r="${r}"`);
+const B=(x,y,w,h)=>R("rect",`x="${x}" y="${y}" width="${w}" height="${h}"`);
+const P=p=>R("polygon",`points="${p}"`);
+const bg=()=>B(-150,-150,300,300);
+const rt=(a,x,y)=>`transform="rotate(${a} ${x} ${y})"`;
+const LF=(x,y,a)=>E(x,y,28,10,rt(a,x,y));
+const stem=(x,y,h)=>B(x-4,y,8,h);
+const fl=(x,y,c,L,w,cr)=>{let s="";for(let i=0;i<c;i++)s+=R("ellipse",`cy="${-L}" rx="${w}" ry="${L*.9}" transform="translate(${x},${y}) rotate(${i*360/c})"`);return s+C(x,y,cr)};
+const H=(x,y,w,h)=>B(x,y,w,h)+P(`${x-10},${y} ${x+w/2},${y-w*.5} ${x+w+10},${y}`)+B(x+w*.38,y+h*.45,w*.24,h*.55)+B(x+w*.1,y+h*.15,w*.22,h*.22)+B(x+w*.68,y+h*.15,w*.22,h*.22);
+const tree=(x,y)=>B(x-6,y,12,50)+C(x,y-10,30);
+const star=(x,y,r)=>P(`${x},${y-r} ${x+r*.3},${y-r*.3} ${x+r},${y} ${x+r*.3},${y+r*.3} ${x},${y+r} ${x-r*.3},${y+r*.3} ${x-r},${y} ${x-r*.3},${y-r*.3}`);
+const PER=(x,y,s,boy)=>{const Q=(t,a)=>R(t,`${a} transform="translate(${x},${y}) scale(${s})"`);
+  return Q("ellipse",'cy="-4" rx="27" ry="30"')+(boy?Q("rect",'x="-22" y="24" width="44" height="62"')+Q("rect",'x="-20" y="86" width="18" height="70"')+Q("rect",'x="2" y="86" width="18" height="70"'):Q("polygon",'points="-14,24 14,24 40,112 -40,112"')+Q("rect",'x="-14" y="112" width="10" height="46"')+Q("rect",'x="4" y="112" width="10" height="46"'))
+  +Q("ellipse",'cx="-27" cy="55" rx="7" ry="28"')+Q("ellipse",'cx="27" cy="55" rx="7" ry="28"')+Q("circle",'r="22"')};
+const f1=v=>v.toFixed(1);
+const sec=(a,b,r1,r2)=>{const p=(r,t)=>`${f1(r*Math.sin(t))} ${f1(-r*Math.cos(t))}`;return R("path",`d="M${p(r2,a)}A${r2} ${r2} 0 0 1 ${p(r2,b)}L${p(r1,b)}A${r1} ${r1} 0 0 0 ${p(r1,a)}Z"`)};
+const A=(k,f)=>Array.from({length:k},(_,i)=>f(i)).join("");
+const hex=(x,y,r)=>P(Array.from({length:6},(_,k)=>f1(x+r*Math.cos(k*1.0472))+","+f1(y+r*Math.sin(k*1.0472))).join(" "));
+const br=(x,y,c,r,w,h)=>A(c*r,i=>B(x+i%c*w,y+(i/c|0)*h,w,h));
+const pine=(x,y,s)=>P(`${x},${y-40*s} ${x+14*s},${y-10*s} ${x-14*s},${y-10*s}`)+P(`${x},${y-22*s} ${x+18*s},${y+14*s} ${x-18*s},${y+14*s}`)+B(x-3*s,y+14*s,6*s,12*s);
+const grass=(y,k)=>A(k,i=>P(`${-150+i*300/k},150 ${-150+(i+.5)*300/k},${y} ${-150+(i+1)*300/k},150`));
+const GX=k=>-105+(k%4)*70+((k>>2)%2)*12,GY=k=>-100+(k>>2)*62;
+
+const CAT={
+"Mandalas":{i:"\u{1F300}",d:{
+ "Grand mandala":()=>C(0,0,150)+A(224,k=>{const cs=[8,16,24,24,32,32,40,48];let j=0,m=k;while(m>=cs[j]){m-=cs[j];j++}const c=cs[j],a=m*2*Math.PI/c;return sec(a,a+2*Math.PI/c,18+16*j,34+16*j)})+C(0,0,18),
+ "Lace mandala":()=>C(0,0,150)+ring("circle",48,'cy="-144" r="4"')+ring("ellipse",36,'cy="-118" rx="8" ry="20"')+ring("ellipse",36,'cy="-92" rx="7" ry="15"',5)+ring("ellipse",36,'cy="-68" rx="8" ry="16"')+ring("polygon",36,'points="-7,-22 0,-48 7,-22"',5)+ring("ellipse",18,'cy="-34" rx="9" ry="14"')+C(0,0,20)+C(0,0,9)},
+ s:{
+ Simple:()=>C(0,0,145)+ring("ellipse",8,'cy="-85" rx="24" ry="48"')+C(0,0,28),
+ Petals:()=>C(0,0,145)+ring("ellipse",12,'cy="-100" rx="17" ry="27"',15)+ring("ellipse",12,'cy="-58" rx="15" ry="28"')+ring("circle",12,'cy="-136" r="6"')+C(0,0,32)+C(0,0,16),
+ Star:()=>C(0,0,145)+ring("polygon",12,'points="-22,-30 0,-135 22,-30"')+ring("polygon",12,'points="-14,-20 0,-80 14,-20"',15)+C(0,0,26),
+ Sunburst:()=>C(0,0,145)+ring("polygon",24,'points="-9,-40 0,-140 9,-40"')+C(0,0,40)+C(0,0,18),
+ Rings:()=>[145,125,105,85,65,45,25].map(r=>C(0,0,r)).join(""),
+ Bloom:()=>C(0,0,145)+ring("ellipse",16,'cy="-110" rx="12" ry="30"')+ring("ellipse",8,'cy="-70" rx="22" ry="36"',22.5)+ring("circle",8,'cy="-30" r="14"')+C(0,0,12)}},
+"Flowers":{i:"\u{1F338}",d:{
+ "Flower garden":()=>bg()+A(16,k=>stem(GX(k),GY(k),150-GY(k)))+A(16,k=>LF(GX(k)+(k%2?18:-18),GY(k)+34,k%2?25:-25))+grass(112,40)+A(16,k=>fl(GX(k),GY(k),8,10,5,7)),
+ "Mega sunflower":()=>bg()+ring("ellipse",36,'cy="-98" rx="12" ry="36"')+ring("ellipse",36,'cy="-82" rx="11" ry="30"',5)+C(0,0,68)+A(130,i=>{const a=i*2.4,r=5.1*Math.sqrt(i);return C(f1(r*Math.sin(a)),f1(-r*Math.cos(a)),4)})},
+ s:{
+ Daisy:()=>bg()+stem(0,-40,190)+LF(-30,50,-30)+LF(30,85,30)+fl(0,-45,12,24,8,16),
+ Sunflower:()=>bg()+stem(0,-30,180)+LF(-32,60,-30)+LF(32,95,30)+fl(0,-40,18,26,8,32),
+ Tulip:()=>bg()+stem(0,-20,170)+LF(-30,70,-35)+LF(30,100,35)+E(-24,-62,18,38,rt(-15,-24,-62))+E(24,-62,18,38,rt(15,24,-62))+E(0,-62,22,44),
+ Lotus:()=>B(-150,-150,300,200)+B(-150,40,300,110)+C(95,-95,28)+E(-92,70,46,12)+E(96,95,40,10)+[-70,70,-40,40,-15,15,0].map(a=>R("ellipse",`cy="-58" rx="22" ry="60" transform="translate(0,40) rotate(${a})"`)).join(""),
+ Pot:()=>bg()+stem(-47,-10,70)+stem(-2,-35,95)+stem(43,-5,65)+P("-40,70 40,70 30,140 -30,140")+B(-46,60,92,14)+fl(-45,-20,8,14,6,10)+fl(0,-50,8,16,7,11)+fl(45,-15,8,14,6,10),
+ Blossom:()=>bg()+ring("ellipse",5,'cy="-55" rx="34" ry="55"')+ring("circle",5,'cy="-30" r="9"',36)+C(0,0,22)}},
+"Houses":{i:"\u{1F3E0}",d:{
+ "Brick cottage":()=>bg()+C(-115,-115,22)+A(3,i=>E(30+i*35,-110-(i%2)*14,32,14))+E(0,160,230,70)+B(40,-70,16,34)+br(-80,-6,10,8,16,10)+P("-95,-6 0,-90 95,-6")+A(7,k=>{const y=-6-(k+1)*11,w=190*(1-(k+.5)*11/80),c=Math.max(1,w/16|0);return A(c,i=>B(-c*8+i*16,y,16,11))})+B(-11,36,22,38)+A(2,j=>A(4,i=>B(-60+j*88+(i%2)*12,6+(i>>1)*12,12,12)))+A(10,i=>C(-90+i*20,88,7))+A(4,i=>B(-146+i*9,70,6,24))+A(4,i=>B(110+i*9,70,6,24))+tree(120,10),
+ "Fort":()=>bg()+B(-150,88,300,62)+br(-90,10,12,6,15,13)+br(-135,-55,3,11,15,13)+br(90,-55,3,11,15,13)+P("-141,-55 -112,-100 -84,-55")+P("84,-55 112,-100 141,-55")+A(6,i=>B(-84+i*28,-4,16,14))+B(-18,40,36,48)+A(3,i=>B(-12+i*10,44,6,40))+B(-119,-35,14,20)+B(-119,10,14,20)+B(105,-35,14,20)+B(105,10,14,20)+P("-112,-100 -112,-128 -88,-114")+P("112,-100 112,-128 136,-114")},
+ s:{
+ Simple:()=>bg()+C(-95,-95,26)+E(0,130,190,90)+tree(100,10)+H(-50,-10,100,80),
+ Cottage:()=>bg()+C(-100,-100,24)+E(0,140,200,80)+B(-30,-60,14,36)+H(-70,0,100,70)+A(8,i=>B(40+i*14,50,8,36))+B(38,60,112,6)+C(-95,85,7)+C(-70,92,7)+C(-45,86,7),
+ Tall:()=>bg()+B(-150,85,300,65)+B(-45,-60,90,145)+P("-58,-60 0,-115 58,-60")+B(-14,50,28,35)+B(-34,-40,20,24)+B(14,-40,20,24)+B(-34,0,20,24)+B(14,0,20,24)+B(-52,-12,104,7),
+ Village:()=>bg()+C(0,-110,24)+E(0,140,210,80)+H(-130,10,70,60)+H(-35,-5,80,75)+H(65,15,65,55),
+ Castle:()=>bg()+B(-150,90,300,60)+B(-70,-10,140,100)+B(-100,-50,40,140)+B(60,-50,40,140)+P("-106,-50 -80,-100 -54,-50")+P("54,-50 80,-100 106,-50")+B(-18,40,36,50)+B(-92,-30,24,22)+B(68,-30,24,22)+A(4,i=>B(-60+i*34,-24,22,14))}},
+"Animals":{i:"\u{1F43E}",d:{
+ "Peacock":()=>bg()+ring("circle",36,'cy="-142" r="4"',0,"translate(0,50)")+A(21,i=>{const t=`translate(0,50) rotate(${-80+i*8})`;return R("ellipse",`cy="-86" rx="15" ry="42" transform="${t}"`)+R("ellipse",`cy="-92" rx="10" ry="29" transform="${t}"`)+R("ellipse",`cy="-98" rx="6" ry="17" transform="${t}"`)+R("circle",`cy="-102" r="4" transform="${t}"`)})+B(-12,110,5,26)+B(7,110,5,26)+E(0,78,26,40)+B(-7,30,14,30)+C(0,24,13)+A(3,i=>C(-8+i*8,8,3.5))+P("-4,26 4,26 0,36")+B(-150,136,300,14),
+ "Koi pond":()=>bg()+[60,44,28].map(r=>C(80,-70,r)).join("")+E(-100,-80,28,20)+E(-110,90,26,18)+E(100,95,30,20)+C(-100,-84,7)+A(5,i=>P(`72,0 128,${-50+i*25} 128,${-25+i*25}`))+P("-25,-40 5,-80 35,-38")+E(-20,38,12,24,rt(30,-20,38))+E(-10,0,80,42)+A(98,i=>{const c=i%14,r=i/14|0,x=-70+c*11+(r%2)*5.5,y=-33+r*11;return (x+10)**2/5184+y*y/1296<1?C(x,y,5.5):""})+E(-34,6,8,26)+C(-58,-10,8)+A(6,i=>C(-112-(i%2)*10,-40-i*14,4+i%3))},
+ s:{
+ Fish:()=>bg()+P("60,0 125,-45 125,45")+E(-10,0,80,48)+P("-25,-44 10,-88 35,-42")+E(-32,8,10,30)+C(-52,-10,9)+C(-110,-60,8)+C(-125,-90,5)+C(-95,-95,10),
+ Butterfly:()=>bg()+E(-55,-45,50,38,rt(-25,-55,-45))+E(55,-45,50,38,rt(25,55,-45))+E(-45,42,38,30,rt(25,-45,42))+E(45,42,38,30,rt(-25,45,42))+E(0,0,9,62)+C(0,-66,11)+C(-58,-45,14)+C(58,-45,14),
+ Cat:()=>bg()+P("-70,-35 -62,-115 -15,-72")+P("70,-35 62,-115 15,-72")+C(0,0,78)+E(-28,-10,12,16)+E(28,-10,12,16)+P("-9,14 9,14 0,26")+E(-34,38,20,12)+E(34,38,20,12),
+ Owl:()=>bg()+B(-150,100,300,14)+E(0,15,72,95)+E(0,38,46,62)+E(-72,30,20,58)+E(72,30,20,58)+P("-62,-72 -42,-108 -22,-78")+P("62,-72 42,-108 22,-78")+C(-27,-32,26)+C(27,-32,26)+C(-27,-32,11)+C(27,-32,11)+P("-9,-12 9,-12 0,12"),
+ "Two birds":()=>bg()+C(0,-95,24)+B(-150,66,300,12)+P("-92,42 -125,20 -122,58")+E(-56,42,34,24)+E(-60,44,18,12)+C(-26,12,18)+P("-9,8 6,12 -9,16")+P("92,42 125,20 122,58")+E(56,42,34,24)+E(60,44,18,12)+C(26,12,18)+P("9,8 -6,12 9,16"),
+ Turtle:()=>bg()+E(-62,-52,18,26,rt(-40,-62,-52))+E(62,-52,18,26,rt(40,62,-52))+E(-62,52,18,26,rt(40,-62,52))+E(62,52,18,26,rt(-40,62,52))+C(0,-92,24)+P("-10,66 10,66 0,98")+C(0,0,70)+C(0,0,28)+ring("circle",6,'cy="-48" r="14"')}},
+"People":{i:"\u{1F9D1}",d:{
+ "Royal portrait":()=>bg()+ring("circle",36,'cy="-140" r="5"')+ring("ellipse",24,'cy="-76" rx="13" ry="38"',0,"translate(0,-12)")+E(0,150,118,55)+A(9,i=>E(-88+i*22,142,9,26))+A(18,i=>C(-80+(i%9)*20,i<9?118:138,5))+B(-20,52,40,40)+E(0,-12,60,76)+E(-62,-10,9,18)+E(62,-10,9,18)+C(-62,22,6)+C(62,22,6)+E(-24,-18,13,8)+E(24,-18,13,8)+B(-38,-36,28,4)+B(10,-36,28,4)+P("-8,-4 8,-4 0,22")+E(0,38,18,7)+C(0,-44,4)+A(11,i=>C(-50+i*10,f1(78+20*Math.sin(i/10*Math.PI)),5))+B(-45,-90,90,12)+A(4,i=>P(`${-45+i*22.5},-90 ${-33.75+i*22.5},-116 ${-22.5+i*22.5},-90`))+A(4,i=>C(-33.75+i*22.5,-84,4)),
+ "Garden friends":()=>bg()+ring("polygon",24,'points="-6,-34 0,-58 6,-34"',0,"translate(88,-88)")+C(88,-88,26)+B(-150,64,300,86)+PER(-50,-70,.85,0)+PER(50,-70,.85,1)+A(10,i=>stem(-130+i*29,100+(i%2)*22,50))+grass(120,30)+A(10,i=>fl(-130+i*29,100+(i%2)*22,6,8,4,5))},
+ s:{
+ Girl:()=>bg()+B(-150,55,300,95)+PER(0,-100,1,0),
+ Boy:()=>bg()+B(-150,55,300,95)+PER(0,-100,1,1),
+ Friends:()=>bg()+B(-150,50,300,100)+PER(-55,-80,.8,0)+PER(55,-80,.8,1),
+ Portrait:()=>bg()+E(0,-10,105,125)+E(0,150,110,60)+B(-22,80,44,70)+E(0,0,72,92)+E(-74,5,10,20)+E(74,5,10,20)+E(-30,-5,15,9)+E(30,-5,15,9)+P("-8,10 8,10 0,35")+E(0,58,22,9)+E(0,-70,72,30)}},
+"Nature":{i:"\u{1F304}",d:{
+ "Sunset valley":()=>A(30,i=>B(-150,-150+i*7.4,300,7.4))+ring("polygon",20,'points="-6,-48 0,-74 6,-48"',0,"translate(0,10)")+C(0,10,40)+A(5,i=>E(-110+i*55,-95+(i%2)*25,26,10))+A(4,i=>{const x=-150+i*75,t=15+(i%2)*25;return P(`${x},72 ${x+37},${t} ${x+37},72`)+P(`${x+37},72 ${x+37},${t} ${x+75},72`)})+A(8,i=>pine(-136+i*38,62,.75))+A(8,i=>B(-150,72+i*10,300,10))+A(3,i=>E(0,86+i*16,50-i*12,4)),
+ "Starry night":()=>bg()+C(95,-95,28)+A(4,i=>C(88+(i%2)*14,-100+(i>>1)*16,4))+A(40,i=>star(-140+(i*73)%280,-140+(i*47)%100,4+(i%3)*2.5))+A(3,i=>E(-90+i*70,-45,34,10))+E(-60,150,170,70)+E(110,155,150,60)+A(8,i=>H(-135+i*35,70-(i%3)*12,28,26))+P("125,150 135,-10 145,150")},
+ s:{
+ Sunset:()=>bg()+C(0,20,52)+P("-150,60 -80,-20 -20,60")+P("-60,60 40,-45 150,60")+B(-150,60,300,90)+E(0,82,45,8),
+ Moonlit:()=>bg()+C(60,-80,36)+star(-90,-95,14)+star(-30,-110,10)+star(-60,-50,8)+star(10,-60,11)+star(100,-20,9)+E(-60,140,150,70)+E(90,150,140,60),
+ Tree:()=>bg()+B(-150,95,300,55)+P("-16,100 16,100 8,-20 -8,-20")+C(0,-65,55)+C(-48,-32,38)+C(48,-32,38)+C(-22,-55,7)+C(26,-48,7)+C(0,-20,7),
+ Rainbow:()=>bg()+[120,100,80,60].map(r=>C(0,50,r)).join("")+C(0,50,40)+B(-150,50,300,100)+E(-100,50,36,18)+E(100,50,36,18),
+ Mountains:()=>bg()+C(95,-95,24)+P("-150,85 -60,-65 30,85")+P("-20,85 70,-35 150,85")+P("-60,-65 -84,-25 -36,-25")+B(-150,85,300,65)+P("-18,150 18,150 8,85 -8,85")}},
+"Abstract":{i:"\u{1F537}",d:{
+ "Kaleidoscope":()=>C(0,0,150)+A(240,k=>{const j=(k/24)|0,a=(k%24)*Math.PI/12;return sec(a,a+Math.PI/12,18+13*j,31+13*j)})+C(0,0,18),
+ "Honeycomb":()=>bg()+A(195,k=>hex(-141+(k%15)*19.5,-140+(k/15|0)*22.5+(k%15%2)*11.25,13))},
+ s:{
+ Mosaic:()=>A(36,k=>B(-150+k%6*50,-150+(k/6|0)*50,50,50)),
+ Overlap:()=>bg()+ring("circle",6,'cy="-55" r="62"')+C(0,0,48),
+ Diamonds:()=>bg()+A(25,k=>{const x=-120+k%5*60,y=-120+(k/5|0)*60;return P(`${x},${y-30} ${x+30},${y} ${x},${y+30} ${x-30},${y}`)}),
+ "Pie rings":()=>bg()+A(24,k=>{const a=(k%12)*Math.PI/6,r=k<12?[95,145]:[45,95];return sec(a,a+Math.PI/6,r[0],r[1])})+C(0,0,45),
+ Waves:()=>bg()+[-90,-50,-10,30,70].map(y=>R("path",`d="M-150 ${y}q37.5-25 75 0t75 0 75 0 75 0V150H-150Z"`)).join("")}}
+};
+const DEF="Mandalas/Petals";
+const get=(c,k)=>CAT[c]&&(CAT[c].d[k]||CAT[c].s[k]);
+const valid=id=>{const[c,k]=(id||"").split("/");return get(c,k)?id:DEF};
+const draw=id=>{n=0;const[c,k]=id.split("/");return get(c,k)()};
+
+/* ---- colours ---- */
+const SOLID=["#e0457b","#f2a900","#ff7a1a","#7bc043","#00897b","#1e88e5","#5e35b1","#8d4a2b","#ffd9a0","#f48fb1","#222222","#ffffff",
+"#d62828","#ffb703","#fb8500","#a7c957","#2a9d8f","#48cae4","#9d4edd","#c08552","#fcd5ce","#ffafcc","#8d99ae","#e9ecef"];
+const DUO=[["Sunset","#ff7a1a","#e0457b"],["Ocean","#1e88e5","#00c9a7"],["Berry","#e0457b","#5e35b1"],["Forest","#a7c957","#00897b"],["Flame","#ffd000","#d62828"],["Candy","#f48fb1","#a0e7ff"],["Dusk","#5e35b1","#ff7a1a"],["Mint","#a8e6cf","#fff3b0"]];
+const SHINE=[["Gold","#f2a900","#a86b00"],["Silver","#c9ced6","#6b7280"],["Rose gold","#f4a6a0","#b76e79"],["Copper","#e07a3f","#8a3b12"],["Emerald","#2ecc71","#0b6b3a"],["Sapphire","#4f8cff","#1b3a8a"],["Ruby","#ff4d6d","#8a1030"],["Amethyst","#b57cff","#4b2a8a"]];
+const DEFS="<defs>"+DUO.map((d,i)=>`<linearGradient id="d${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${d[1]}"/><stop offset="1" stop-color="${d[2]}"/></linearGradient>`).join("")
++SHINE.map((d,i)=>`<linearGradient id="s${i}" x1="-1" y1="0" x2="0" y2="0.4" spreadMethod="reflect"><stop offset="0" stop-color="${d[2]}"/><stop offset=".3" stop-color="${d[1]}"/><stop offset=".5" stop-color="#fff"/><stop offset=".7" stop-color="${d[1]}"/><stop offset="1" stop-color="${d[2]}"/><animate attributeName="x1" values="-1;1;-1" dur="4s" repeatCount="indefinite"/><animate attributeName="x2" values="0;2;0" dur="4s" repeatCount="indefinite"/></linearGradient>`).join("")+"</defs>";
+const paint=v=>!v?"#fff":v[0]=="#"?v:`url(#${v})`;
+
+/* ---- state ---- */
+let room=null,ref=null,unsub=null,fig=DEF,cat="Mandalas",fills={},cur="#e0457b",shownFig=null;
+const svg=$("svg"),fly=$("fly");
+
+function pick(v,b){cur=v;document.querySelectorAll(".sw,.tool,#custom").forEach(x=>x.classList.remove("on"));b.classList.add("on")}
+function sw(val,bg,label,cls){const b=document.createElement("button");b.className="sw "+(cls||"");b.style.background=bg;b.title=label;b.setAttribute("aria-label",label);b.onclick=()=>pick(val,b);return b}
+SOLID.forEach((c,i)=>{const b=sw(c,c,"Colour "+(i+1));if(!i)b.classList.add("on");$("solid").append(b)});
+DUO.forEach((d,i)=>$("duo").append(sw("d"+i,`linear-gradient(135deg,${d[1]},${d[2]})`,d[0]+", two colours")));
+SHINE.forEach((d,i)=>$("shine").append(sw("s"+i,`linear-gradient(110deg,${d[2]},${d[1]} 35%,#fff 50%,${d[1]} 65%,${d[2]})`,d[0]+", shining","shine")));
+$("erase").onclick=function(){pick("",this)};
+$("custom").oninput=e=>pick(e.target.value,e.target);
+
+/* ---- category rail (left) and picture list (opens on tap, hides after choosing) ---- */
+function buildRail(){
+  const rl=$("rail"),open=fly.classList.contains("open");rl.innerHTML="";
+  Object.keys(CAT).forEach(k=>{const b=document.createElement("button");
+    b.className="alt"+(open&&k===cat?" on":(!open&&k===fig.split("/")[0]?" cur":""));
+    b.innerHTML=`<span class="ic">${CAT[k].i}</span>${k}`;
+    b.onclick=e=>{e.stopPropagation();if(open&&k===cat)fly.classList.remove("open");else{cat=k;buildFly();fly.classList.add("open")}buildRail()};rl.append(b)});
+}
+function buildFly(){
+  fly.innerHTML="";
+  const grp=(title,obj)=>{if(!Object.keys(obj).length)return;const h=document.createElement("h3");h.textContent=title;fly.append(h);
+    const g=document.createElement("div");g.className="vars";
+    Object.keys(obj).forEach(k=>{const id=cat+"/"+k,s=draw(id),cnt=(s.match(/class="r"/g)||[]).length,b=document.createElement("button");if(id===fig)b.className="on";
+      b.innerHTML=`<svg class="th" viewBox="-150 -150 300 300">${s}</svg>${k}<small>${cnt} parts</small>`;b.onclick=()=>choose(id);g.append(b)});fly.append(g)};
+  grp("Detailed (10 to 20 minutes)",CAT[cat].d);grp("Quick",CAT[cat].s);
+}
+function choose(id){
+  if(!room||id===fig)return;
+  if(Object.keys(fills).length&&!confirm("Start a new picture? This clears the colours for both of you."))return;
+  updateDoc(ref,{fig:id,fills:{}}).catch(()=>setStatus(false,"Offline"));
+  fly.classList.remove("open");buildRail();svg.scrollIntoView({behavior:"smooth",block:"center"});
+}
+document.addEventListener("click",e=>{if(!e.target.closest(".fly,.rail")&&fly.classList.contains("open")){fly.classList.remove("open");buildRail()}});
+
+function render(){
+  if(shownFig!==fig){svg.innerHTML=DEFS+draw(fig);shownFig=fig;cat=fig.split("/")[0];buildRail()}
+  svg.querySelectorAll(".r").forEach(e=>e.style.fill=paint(fills[e.dataset.i]));
+}
+svg.addEventListener("click",e=>{
+  const t=e.target.closest(".r");if(!t||!room)return;
+  const i=t.dataset.i,off=()=>setStatus(false,"Offline");
+  if(cur===""){delete fills[i];t.style.fill="#fff";updateDoc(ref,{["fills."+i]:deleteField()}).catch(off)}
+  else{fills[i]=cur;t.style.fill=paint(cur);updateDoc(ref,{["fills."+i]:cur}).catch(off)}
+});
+
+function setStatus(on,t){$("dot").classList.toggle("on",on);$("st").textContent=t}
+const codeGen=()=>Array.from({length:5},()=>"ABCDEFGHJKMNPQRSTUVWXYZ23456789"[Math.random()*31|0]).join("");
+
+function enter(code){
+  room=code;ref=doc(db,"rooms",code);
+  $("lobby").style.display="none";$("game").style.display="flex";document.body.classList.add("g");$("code").textContent="";
+  shownFig=null;
+  unsub=onSnapshot(ref,s=>{
+    if(!s.exists())return;
+    const d=s.data();fig=valid(d.fig);fills=d.fills||{};render();setStatus(true,"Live");
+  },()=>setStatus(false,"Offline"));
+}
+async function create(){
+  if(!configured)return msg("Add your Firebase config first.");
+  if($("codeIn").value.trim().toUpperCase()!==ROOM.toUpperCase())return msg("Enter the room password first.");
+  try{const r=doc(db,"rooms",ROOM);const s=await getDoc(r);if(!s.exists())await setDoc(r,{fig:DEF,fills:{},made:Date.now()});enter(ROOM)}
+  catch(e){msg("Could not create the room. Check that Firestore is enabled and in test mode.")}
+}
+async function join(){
+  if(!configured)return msg("Add your Firebase config first.");
+  if($("codeIn").value.trim().toUpperCase()!==ROOM.toUpperCase())return msg("Wrong password. Check it and try again.");
+  try{const s=await getDoc(doc(db,"rooms",ROOM));s.exists()?enter(ROOM):msg("No room yet. Tap Create room first.")}
+  catch(e){msg("Could not join. Check your internet connection.")}
+}
+$("create").onclick=create;$("join").onclick=join;
+$("codeIn").addEventListener("keydown",e=>e.key==="Enter"&&join());
+$("clear").onclick=()=>room&&confirm("Clear all colours for both of you?")&&updateDoc(ref,{fills:{}});
+$("leave").onclick=()=>{unsub&&unsub();room=null;shownFig=null;fly.classList.remove("open");document.body.classList.remove("g");history.replaceState(null,"",location.pathname);$("game").style.display="none";$("lobby").style.display="block";setStatus(false,"Connecting")};
+$("copy").onclick=async()=>{const u=location.origin+location.pathname+"?room="+room;
+  try{await navigator.clipboard.writeText(u);$("copy").textContent="Link copied"}catch{prompt("Copy this link:",u)}
+  setTimeout(()=>$("copy").textContent="Copy invite link",1800)};
+
+const q=new URLSearchParams(location.search).get("room");
+if(q){$("codeIn").value=q.toUpperCase();if(configured)join()}
+</script>
+</body>
+</html>
